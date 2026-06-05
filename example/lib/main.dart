@@ -400,11 +400,31 @@ class _ReaderPageState extends State<ReaderPage>
                     _loadAndSetFont(widget.fontFamily);
                   },
                   onChaptersLoaded: (ch) => setState(() => _chapters = ch),
-                  onRelocated: (loc) => setState(() => _location = loc),
+                  onRelocated: (loc, html){
+                    setState(() => _location = loc);
+                     print("Reloacted to ${loc.startCfi}. ${loc.endCfi}");
+                    print("Reloacted to progress ${loc.progress}");
+                    print("Reloacted to page number ${loc.page} of ${loc.totalPages}");
+
+                    if(loc.progress == 1.0 && loc.page == loc.totalPages){
+                      print("==========> Last Page");
+                    }
+
+                    if(loc.progress == 0.0 && loc.page == 1){
+                      print("==========> First Page");
+                    }
+                  },
+                  onTagClicked: (tagInfo) {
+                    print("Clicked Tag: ${tagInfo['tag']}");
+                    print("ID: ${tagInfo['id']}");
+                    print("Text: ${tagInfo['text']}");
+                    print("HTML: ${tagInfo['html']}");
+                  },
                   onTextSelected: (sel) => setState(() {
                     _selectedText = sel.selectedText;
                     _selectedCfi = sel.selectionCfi;
                   }),
+
                   onDeselection: () => setState(() {
                     _selectedText = '';
                     _selectedCfi = '';

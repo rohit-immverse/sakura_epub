@@ -28,13 +28,12 @@ Future<String> _encodeBase64(Uint8List data) async {
 /// * [cfiRange] - The EPUB CFI (Canonical Fragment Identifier) range for the selection
 /// * [selectionRect] - The bounding rectangle of the selected text (WebView-relative)
 /// * [viewRect] - The bounding rectangle of the entire WebView
-typedef EpubSelectionCallback =
-    void Function(
-      String selectedText,
-      String cfiRange,
-      Rect selectionRect,
-      Rect viewRect,
-    );
+typedef EpubSelectionCallback = void Function(
+  String selectedText,
+  String cfiRange,
+  Rect selectionRect,
+  Rect viewRect,
+);
 
 class EpubViewer extends StatefulWidget {
   const EpubViewer({
@@ -62,6 +61,7 @@ class EpubViewer extends StatefulWidget {
     this.suppressNativeContextMenu = false,
     this.clearSelectionOnPageChange = true,
     this.selectAnnotationRange = false,
+    this.onTagClicked,
   });
 
   //Epub controller to manage epub
@@ -89,7 +89,7 @@ class EpubViewer extends StatefulWidget {
   final ValueChanged<List<EpubChapter>>? onChaptersLoaded;
 
   ///Call back when epub page changes
-  final ValueChanged<EpubLocation>? onRelocated;
+  final void Function(EpubLocation location, String? html)? onRelocated;
 
   ///Callback when initial position loading starts (for showing progress indicator)
   ///Receives the type: 'xpath' or 'cfi'
@@ -107,7 +107,9 @@ class EpubViewer extends StatefulWidget {
   ///Callback for handling annotation click (Highlight and Underline)
   ///Provides the CFI range and the selection rect (same format as onSelection)
   final void Function(String cfiRange, Map<String, dynamic>? rect)?
-  onAnnotationClicked;
+      onAnnotationClicked;
+
+  final ValueChanged<Map<String, dynamic>>? onTagClicked; // 👈 NEW
 
   /// Context menu for text selection.
   /// If null, the default context menu will be used.
@@ -209,7 +211,7 @@ class EpubViewer extends StatefulWidget {
   /// Custom permission handler for webview permission requests.
   /// If null, permissions are denied by default.
   final Future<PermissionResponse> Function(PermissionRequest request)?
-  onPermissionRequest;
+      onPermissionRequest;
 
   @override
   State<EpubViewer> createState() => _EpubViewerState();
@@ -219,7 +221,7 @@ class _EpubViewerState extends State<EpubViewer> {
   final GlobalKey webViewKey = GlobalKey();
 
   Timer?
-  _selectionCheckTimer; // Timer to periodically verify selection still exists
+      _selectionCheckTimer; // Timer to periodically verify selection still exists
 
   InAppWebViewController? webViewController;
 
@@ -477,10 +479,28 @@ class _EpubViewerState extends State<EpubViewer> {
     );
 
     webViewController?.addJavaScriptHandler(
+      handlerName: "tagClicked",
+      callback: (data) {
+        debugPrint("FLUTTER TAG CLICK: $data");
+        if (data.isNotEmpty) {
+          final tagInfo = Map<String, dynamic>.from(data[0]);
+          widget.onTagClicked?.call(tagInfo);
+        }
+      },
+    );
+
+    webViewController?.addJavaScriptHandler(
       handlerName: "relocated",
       callback: (data) {
-        var location = data[0];
-        widget.onRelocated?.call(EpubLocation.fromJson(location));
+        final payload = Map<String, dynamic>.from(data[0]);
+
+        final location = EpubLocation.fromJson(
+          Map<String, dynamic>.from(payload['location']),
+        );
+
+        final html = payload['html'] as String?;
+
+        widget.onRelocated?.call(location, html);
       },
     );
 
@@ -670,16 +690,15 @@ class _EpubViewerState extends State<EpubViewer> {
     bool allowScripted = displaySettings.allowScriptedContent;
     String cfi = widget.initialCfi ?? "";
     String? initialXPath = widget.initialXPath;
-    String direction =
-        widget.displaySettings?.defaultDirection.name ??
+    String direction = widget.displaySettings?.defaultDirection.name ??
         EpubDefaultDirection.ltr.name;
     int fontSize = displaySettings.fontSize;
 
     bool useCustomSwipe =
         Platform.isAndroid && !displaySettings.useSnapAnimationAndroid;
 
-    String? foregroundColor = widget.displaySettings?.theme?.foregroundColor
-        ?.toHex();
+    String? foregroundColor =
+        widget.displaySettings?.theme?.foregroundColor?.toHex();
 
     // Extract background color from the theme's BoxDecoration if available
     String? backgroundColor;
@@ -732,8 +751,7 @@ class _EpubViewerState extends State<EpubViewer> {
               )
             : widget.selectionContextMenu,
         key: webViewKey,
-        initialFile:
-            'packages/sakura_epub/lib/assets/webpage/html/swipe.html',
+        initialFile: 'packages/sakura_epub/lib/assets/webpage/html/swipe.html',
         initialSettings: settings
           ..disableVerticalScroll = widget.displaySettings?.snap ?? false,
         onWebViewCreated: (controller) async {
@@ -819,12 +837,12 @@ class _EpubViewerState extends State<EpubViewer> {
       webViewController
           ?.evaluateJavascript(source: 'checkSelectionAndReapplyBlocking()')
           .then((result) {
-            // If selection no longer exists, stop monitoring
-            if (result == 'no-selection') {
-              _stopSelectionMonitoring();
-              _blockGesturesWhenSelected(false);
-            }
-          });
+        // If selection no longer exists, stop monitoring
+        if (result == 'no-selection') {
+          _stopSelectionMonitoring();
+          _blockGesturesWhenSelected(false);
+        }
+      });
     });
   }
 

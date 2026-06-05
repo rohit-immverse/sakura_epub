@@ -19,12 +19,17 @@ class EpubLocation {
   /// Progress percentage of location, value between 0.0 and 1.0
   double progress;
 
+  final int? page;
+  final int? totalPages;
+
   EpubLocation({
     required this.startCfi,
     required this.endCfi,
     this.startXpath,
     this.endXpath,
     required this.progress,
+    this.page,
+    this.totalPages,
   });
   factory EpubLocation.fromJson(Map<String, dynamic> json) =>
       _$EpubLocationFromJson(json);

@@ -12,6 +12,8 @@ EpubLocation _$EpubLocationFromJson(Map<String, dynamic> json) => EpubLocation(
       startXpath: json['startXpath'] as String?,
       endXpath: json['endXpath'] as String?,
       progress: (json['progress'] as num).toDouble(),
+      page: (json['page'] as num).toInt(),
+      totalPages: (json['totalPages'] as num).toInt(),
     );
 
 Map<String, dynamic> _$EpubLocationToJson(EpubLocation instance) =>
@@ -21,4 +23,6 @@ Map<String, dynamic> _$EpubLocationToJson(EpubLocation instance) =>
       'startXpath': instance.startXpath,
       'endXpath': instance.endXpath,
       'progress': instance.progress,
+      'page': instance.page,
+      'totalPages': instance.totalPages
     };
