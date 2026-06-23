@@ -222,8 +222,7 @@ class ReaderPage extends StatefulWidget {
 class _ReaderPageState extends State<ReaderPage>
     with SingleTickerProviderStateMixin {
   final EpubController _ctrl = EpubController();
-  final EpubSource _src =
-      EpubSource.fromAsset('assets/herbert-old-rambling-house.epub');
+  final EpubSource _src = EpubSource.fromAsset('assets/Ch_6.epub');
 
   // State
   bool _loaded = false;
@@ -292,7 +291,8 @@ class _ReaderPageState extends State<ReaderPage>
         'packages/sakura_epub/lib/assets/fonts/$fileName',
       );
       final base64 = base64Encode(data.buffer.asUint8List());
-      final mime = fileName.endsWith('.otf') ? 'font/opentype' : 'font/truetype';
+      final mime =
+          fileName.endsWith('.otf') ? 'font/opentype' : 'font/truetype';
       await _ctrl.setFontFamily(
         fontFamily: fontFamily,
         fontBase64: base64,
@@ -393,24 +393,26 @@ class _ReaderPageState extends State<ReaderPage>
                     spread: EpubSpread.none,
                     snap: true,
                     allowScriptedContent: true,
-                    theme: _epubThemeFor(widget.themeType, widget.fontFamily),
+                    theme:
+                        _epubThemeFor(widget.themeType, widget.fontFamily),
                   ),
                   onEpubLoaded: () {
                     setState(() => _loaded = true);
                     _loadAndSetFont(widget.fontFamily);
                   },
                   onChaptersLoaded: (ch) => setState(() => _chapters = ch),
-                  onRelocated: (loc, html){
+                  onRelocated: (loc, html) {
                     setState(() => _location = loc);
-                     print("Reloacted to ${loc.startCfi}. ${loc.endCfi}");
+                    print("Reloacted to ${loc.startCfi}. ${loc.endCfi}");
                     print("Reloacted to progress ${loc.progress}");
-                    print("Reloacted to page number ${loc.page} of ${loc.totalPages}");
-
-                    if(loc.progress == 1.0 && loc.page == loc.totalPages){
+                    print(
+                        "Reloacted to page number ${loc.page} of ${loc.totalPages}");
+                                
+                    if (loc.progress == 1.0 && loc.page == loc.totalPages) {
                       print("==========> Last Page");
                     }
-
-                    if(loc.progress == 0.0 && loc.page == 1){
+                                
+                    if (loc.progress == 0.0 && loc.page == 1) {
                       print("==========> First Page");
                     }
                   },
@@ -424,7 +426,6 @@ class _ReaderPageState extends State<ReaderPage>
                     _selectedText = sel.selectedText;
                     _selectedCfi = sel.selectionCfi;
                   }),
-
                   onDeselection: () => setState(() {
                     _selectedText = '';
                     _selectedCfi = '';
@@ -917,8 +918,9 @@ class _SettingsSheetState extends State<_SettingsSheet> {
   @override
   Widget build(BuildContext context) {
     final sheetBg = widget.isDark ? const Color(0xff1c1c1e) : Colors.white;
-    final labelColor =
-        widget.isDark ? Colors.white.withValues(alpha: 0.5) : const Color(0xff6D6875);
+    final labelColor = widget.isDark
+        ? Colors.white.withValues(alpha: 0.5)
+        : const Color(0xff6D6875);
     final titleColor = widget.isDark ? Colors.white : const Color(0xff1a1a1a);
     final accentColor = Theme.of(context).colorScheme.primary;
 
@@ -1057,7 +1059,8 @@ class _SettingsSheetState extends State<_SettingsSheet> {
                               boxShadow: selected
                                   ? [
                                       BoxShadow(
-                                        color: accentColor.withValues(alpha: 0.2),
+                                        color:
+                                            accentColor.withValues(alpha: 0.2),
                                         blurRadius: 10,
                                         offset: const Offset(0, 4),
                                       )
@@ -1615,7 +1618,8 @@ class _SearchResultsSheet extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(IconlyLight.info_square,
-                              size: 48, color: labelColor.withValues(alpha: 0.3)),
+                              size: 48,
+                              color: labelColor.withValues(alpha: 0.3)),
                           const SizedBox(height: 16),
                           Text(
                             'No matches found',
@@ -1708,8 +1712,8 @@ class _BarButtonState extends State<_BarButton> {
             color: Colors.transparent,
             borderRadius: BorderRadius.circular(12),
           ),
-          child:
-              Icon(widget.icon, color: widget.color.withValues(alpha: 0.9), size: 22),
+          child: Icon(widget.icon,
+              color: widget.color.withValues(alpha: 0.9), size: 22),
         ),
       ),
     );
