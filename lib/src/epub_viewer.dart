@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -694,8 +693,8 @@ class _EpubViewerState extends State<EpubViewer> {
         EpubDefaultDirection.ltr.name;
     int fontSize = displaySettings.fontSize;
 
-    bool useCustomSwipe =
-        Platform.isAndroid && !displaySettings.useSnapAnimationAndroid;
+    bool useCustomSwipe = true;
+        // Platform.isAndroid && !displaySettings.useSnapAnimationAndroid;
 
     String? foregroundColor =
         widget.displaySettings?.theme?.foregroundColor?.toHex();
